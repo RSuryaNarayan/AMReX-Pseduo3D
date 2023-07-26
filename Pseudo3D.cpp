@@ -80,6 +80,8 @@ int main(int argc, char* argv[])
 	RealBox rb(&(plotfile_2D.probLo()[0]), 
                &(plotfile_2D.probHi()[0]));
 	int coord = plotfile_2D.coordSys();
+	Vector<IntVect> refRatios(finestLevel-1);
+	Vector<int> levelSteps(finestLevel);
 	IntVect nGrow;
 
     	// Read data on all the levels
@@ -88,6 +90,10 @@ int main(int argc, char* argv[])
 	grids[lev] = ba;
 	dmap[lev] = plotfile_2D.DistributionMap(lev);
 	geoms[lev] = Geometry(plotfile_2D.probDomain(lev),&rb,coord,&(is_per[0]));
+	if (lev < finestLevel-1) {
+		refRatios[lev] = IntVect(plotfile_2D.refRatio(lev));
+	}
+	levelSteps[lev] = plotfile_2D.levelStep(lev);
 	nGrow = plotfile_2D.nGrowVect(lev);
 	state[lev].define(grids[lev], dmap[lev], nCompIn, nGrow);
 	Print() << "Writing data for level: " << lev << std::endl;
@@ -95,8 +101,6 @@ int main(int argc, char* argv[])
 	}
 	
 	Real time = plotfile_2D.time();
-	Vector<int> isteps(finestLevel, 0);
-	Vector<IntVect> refRatios(finestLevel-1,{AMREX_D_DECL(2, 2, 2)});
 	
 	//----------------------------------------------------------------------
 	// Assemble and write plotfile out
@@ -107,7 +111,7 @@ int main(int argc, char* argv[])
 				plotVarNames,
 				geoms,
 				time,
-				isteps,
+				levelSteps,
 				refRatios);
 	std::cout<<"\n Wrote 3D plotfile "<<outfile<<"\n";				
     }
